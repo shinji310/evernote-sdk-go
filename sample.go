@@ -11,7 +11,7 @@ import (
 
 const (
 	SERVER = "sandbox.evernote.com"
-	DEV_TOKEN = "S=s1:U=67ed:E=16b336a2f68:C=163dbb901c8:P=1cd:A=en-devtoken:V=2:H=457c5e5c5305d62b2d8d0aea10b53724"
+	DEV_TOKEN = "<Put your own developer token>"
 )
 
 /* Obtain User Store */
