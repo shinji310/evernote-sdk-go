@@ -4,81 +4,29 @@ import (
 	"os"
 	"fmt"
 	"context"
-	"errors"
-	"github.com/apache/thrift/lib/go/thrift"
-	"github.com/shinji310/evernote-sdk-go/edam"
+	"github.com/shinji310/evernote-sdk-go/client"
 )
 
 const (
 	SERVER = "sandbox.evernote.com"
-	DEV_TOKEN = "<Put your own developer token>"
+	DEV_TOKEN = "S=s1:U=67ed:E=16c54446645:C=164fc933840:P=1cd:A=en-devtoken:V=2:H=018800bb8fb400bf883633835556fd6f"
 )
 
-/* Obtain User Store */
-func GetUserStore() (*edam.UserStoreClient, error) {
-	endpoint_url := fmt.Sprintf("https://%s/edam/user", SERVER)
-	trans, err := thrift.NewTHttpClient(endpoint_url)
-	if err != nil {
-		return nil, err
-	}
-	protocolFactory := thrift.NewTBinaryProtocolFactoryDefault()
-	iprot := protocolFactory.GetProtocol(trans)
-	oprot := protocolFactory.GetProtocol(trans)
-	client := edam.NewUserStoreClient(thrift.NewTStandardClient(iprot, oprot))
-	if err := trans.Open(); err != nil {
-		return nil, errors.New("Error: GetUserStore() opening socket")
-	}
-	return client, nil
-}
 
-/* Obtain Note Store with Note Store URL */
-func GetNoteStoreWithUrl(notestoreUrl string) (*edam.NoteStoreClient, error) {
-	trans, err := thrift.NewTHttpClient(notestoreUrl)
-	if err != nil {
-		return nil, err
-	}
-
-	protocolFactory := thrift.NewTBinaryProtocolFactoryDefault() // get a protocol factory
-	iprot := protocolFactory.GetProtocol(trans)
-	oprot := protocolFactory.GetProtocol(trans)
-	client := edam.NewNoteStoreClient(thrift.NewTStandardClient(iprot, oprot))
-	if err := trans.Open(); err != nil {
-		return nil, errors.New("Error: GetNoteStoreWithURL() opening socket")
-	}
-	return client, nil
-}
-
-/* Obtain Note Store */
-func GetNoteStore(context context.Context, authenticationToken string) (*edam.NoteStoreClient, error) {
-	userstore, err := GetUserStore() // init userstore client
-	if err != nil {
-		return nil, err
-	}
-	urls, err := userstore.GetUserUrls(context, authenticationToken) // call GetUserUrls()
-	if err != nil {
-		return nil, err
-	}
-	notestoreUrl := urls.GetNoteStoreUrl() // get notestore URL
-
-	notestore, err := GetNoteStoreWithUrl(notestoreUrl) // init notestore client
-	if err != nil {
-		return nil, err
-	}
-
-	return notestore, nil
-}
-
-
+/*
+Sample code - List all the notebooks
+*/
 func main() {
 	ctx := context.Background() // create simplest context
+	enClient := client.NewEvernoteClient(DEV_TOKEN, client.SANDBOX) // create EvernoteClient
 	
-	notestore, err := GetNoteStore(ctx, DEV_TOKEN) // obtain notestore
+	ns, err := enClient.GetNoteStore(ctx) // obtain notestore
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	notebooks, err := notestore.ListNotebooks(ctx, DEV_TOKEN) // listing notebooks by calling API
+	notebooks, err := ns.ListNotebooks(ctx, enClient.GetAuthenticationToken()) // listing notebooks by calling API
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
